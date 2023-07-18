@@ -20,3 +20,5 @@ Sprint 2
 Sprint 3
 
 - [ ] Add a rules screen
+
+- [ ] Make an interface using tkinter or pygame
