@@ -9,11 +9,13 @@ Sprint 1
 
 Sprint 2
  
-- [ ] Look for changes: found a GUI base
+- [X] Look for changes
  
-- [ ] Locate errors
+- [X] Locate errors
 
-- [ ] Add a separate title screen function
+- [ ] Add comments to the code
+
+- [ ] Fix any errors found
  
 Sprint 3
 
