@@ -1,11 +1,11 @@
-import random
+import random 
 
-# Define constants for suits, values, and the special blackjack value
 SUITS = ["Spades", "Clubs", "Hearts", "Diamonds"]
 VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 BLACKJACK = 21
 ACE_ALT_VALUE = 10
 INITIAL_MONEY = 1000
+DEALER_MINIMUM_VALUE = 17
 
 class Card: 
     def __init__(self, suit, value): 
@@ -38,19 +38,20 @@ class Hand:
 
     def calculate_value(self):
         self.value = 0 
-        has_ace = False
+        aces = 0
         for card in self.cards:
             if card.value.isnumeric():
                 self.value += int(card.value)
             else:
                 if card.value == "A":
-                    has_ace = True
+                    aces += 1
                     self.value += 11
                 else:
                     self.value += 10
-        
-        if has_ace and self.value > BLACKJACK: 
+
+        while self.value > BLACKJACK and aces:
             self.value -= ACE_ALT_VALUE
+            aces -= 1
 
     def get_value(self):
         self.calculate_value()
@@ -73,6 +74,8 @@ class Game:
         playing = True 
 
         while playing: 
+            bet = self.get_bet()  # Move the bet to the beginning of the round
+
             self.deck = Deck()
             self.deck.shuffle()
 
@@ -90,8 +93,6 @@ class Game:
             self.dealer_hand.display()
 
             game_over = False
-
-            bet = self.get_bet()
 
             while not game_over: 
                 player_has_blackjack, dealer_has_blackjack = self.check_for_blackjack()
@@ -120,6 +121,9 @@ class Game:
                         game_over = True
                 
                 elif choice == '2':
+                    while self.dealer_hand.get_value() < DEALER_MINIMUM_VALUE:
+                        self.dealer_hand.add_card(self.deck.deal())
+
                     player_hand_value = self.player_hand.get_value()
                     dealer_hand_value = self.dealer_hand.get_value()
 
@@ -147,7 +151,6 @@ class Game:
                     else:
                         bet *= 2
                 elif choice == '4':
-                    # The code for splitting the hand would be here
                     pass
                 
             print(f"You now have ${self.money}")
