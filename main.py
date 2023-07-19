@@ -123,6 +123,14 @@ class Game:
                 elif choice == '2':
                     while self.dealer_hand.get_value() < DEALER_MINIMUM_VALUE:
                         self.dealer_hand.add_card(self.deck.deal())
+                        if self.dealer_is_over():
+                            print("Dealer has busted! You win!")
+                            self.money += bet
+                            game_over = True
+                            break
+
+                    if game_over:
+                        break
 
                     player_hand_value = self.player_hand.get_value()
                     dealer_hand_value = self.dealer_hand.get_value()
@@ -150,8 +158,10 @@ class Game:
                         self.money -= 2 * bet
                     else:
                         bet *= 2
+
                 elif choice == '4':
-                    pass
+                    self.split_hand()
+                    self.player_hand.display()
                 
             print(f"You now have ${self.money}")
 
@@ -167,9 +177,25 @@ class Game:
     def player_is_over(self):
         return self.player_hand.get_value() > BLACKJACK
 
+    def dealer_is_over(self):
+        return self.dealer_hand.get_value() > BLACKJACK
+
     def can_split(self):
         return len(self.player_hand.cards) == 2 and self.player_hand.cards[0].value == self.player_hand.cards[1].value
     
+    def split_hand(self):
+        if not self.can_split():
+            print("Cannot split hand!")
+            return
+
+        # Create a new hand and move one card to the new hand
+        self.player_hand2 = Hand()
+        self.player_hand2.add_card(self.player_hand.cards.pop())
+
+        # Deal a new card to each hand
+        self.player_hand.add_card(self.deck.deal())
+        self.player_hand2.add_card(self.deck.deal())
+
     def get_bet(self):
         while True:
             bet = input(f"You have ${self.money}. How much do you want to bet?")
