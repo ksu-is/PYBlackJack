@@ -181,8 +181,8 @@ class Game:
         return self.dealer_hand.get_value() > BLACKJACK
 
     def can_split(self):
-        return len(self.player_hand.cards) == 2 and self.player_hand.cards[0].value == self.player_hand.cards[1].value
-    
+        return len(self.player_hand.cards) == 2 and self.card_value(self.player_hand.cards[0]) == self.card_value(self.player_hand.cards[1])
+
     def split_hand(self):
         if not self.can_split():
             print("Cannot split hand!")
@@ -195,6 +195,14 @@ class Game:
         # Deal a new card to each hand
         self.player_hand.add_card(self.deck.deal())
         self.player_hand2.add_card(self.deck.deal())
+
+    def card_value(self, card):
+        if card.value.isnumeric():
+            return int(card.value)
+        elif card.value == "A":
+            return 11
+        else:
+            return 10
 
     def get_bet(self):
         while True:
