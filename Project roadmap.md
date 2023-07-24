@@ -13,12 +13,10 @@ Sprint 2
  
 - [X] Locate errors
 
-- [ ] Add comments to the code
+- [X] Add comments to the code
 
-- [ ] Fix any errors found
+- [X] Fix any errors found
  
 Sprint 3
 
 - [ ] Add a rules screen
-
-- [ ] Make an interface using tkinter or pygame
