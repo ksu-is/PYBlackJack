@@ -19,4 +19,4 @@ Sprint 2
  
 Sprint 3
 
-- [ ] Add a rules screen
+- [X] Continue editing and fixing code
