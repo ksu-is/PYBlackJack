@@ -74,7 +74,7 @@ class Game:
         playing = True 
 
         while playing: 
-            bet = self.get_bet()  # Move the bet to the beginning of the round
+            self.bet = self.get_bet()  # Move the bet to the beginning of the round
 
             self.deck = Deck()
             self.deck.shuffle()
@@ -100,68 +100,40 @@ class Game:
                 if player_has_blackjack or dealer_has_blackjack:
                     game_over = True 
                     self.show_blackjack_results(
-                        player_has_blackjack , dealer_has_blackjack, bet)
+                        player_has_blackjack , dealer_has_blackjack, self.bet)
                     continue 
                 
                 print("\nChoose your action:")
                 print("[1] - Hit")
                 print("[2] - Stand")
                 print("[3] - Double Down")
-                if self.can_split():
+                if self.can_split(self.player_hand):
                     print("[4] - Split")
 
                 choice = self.get_choice(["1", "2", "3", "4"])
 
                 if choice == '1':
-                    self.player_hand.add_card(self.deck.deal())
-                    self.player_hand.display()
-                    if self.player_is_over():
+                    self.hit(self.player_hand)
+                    if self.is_bust(self.player_hand):
                         print("You have lost!")
-                        self.money -= bet
+                        self.money -= self.bet
                         game_over = True
                 
                 elif choice == '2':
-                    while self.dealer_hand.get_value() < DEALER_MINIMUM_VALUE:
-                        self.dealer_hand.add_card(self.deck.deal())
-                        if self.dealer_is_over():
-                            print("Dealer has busted! You win!")
-                            self.money += bet
-                            game_over = True
-                            break
-
-                    if game_over:
-                        break
-
-                    player_hand_value = self.player_hand.get_value()
-                    dealer_hand_value = self.dealer_hand.get_value()
-
-                    print("Final Results")
-                    print("Your hand:", player_hand_value)
-                    print("Dealer's hand:", dealer_hand_value)
-
-                    if player_hand_value > dealer_hand_value:
-                        print("You Win!")
-                        self.money += bet
-                    elif player_hand_value == dealer_hand_value:
-                        print("Tie!")
-                    else: 
-                        print("Dealer Wins!")
-                        self.money -= bet
-
+                    self.stand()
                     game_over = True
-
+                
                 elif choice == '3':
-                    self.player_hand.add_card(self.deck.deal())
-                    self.player_hand.display()
-                    if self.player_is_over():
+                    self.double_down(self.player_hand)
+                    if self.is_bust(self.player_hand):
                         print("You have lost!")
-                        self.money -= 2 * bet
+                        self.money -= 2 * self.bet
+                        game_over = True
                     else:
-                        bet *= 2
-
+                        self.bet *= 2
+                
                 elif choice == '4':
                     self.split_hand()
-                    self.player_hand.display()
                 
             print(f"You now have ${self.money}")
 
@@ -174,17 +146,41 @@ class Game:
             else:
                 game_over = False
 
-    def player_is_over(self):
-        return self.player_hand.get_value() > BLACKJACK
+    def hit(self, hand):
+        hand.add_card(self.deck.deal())
+        hand.display()
 
-    def dealer_is_over(self):
-        return self.dealer_hand.get_value() > BLACKJACK
+    def stand(self):
+        while self.dealer_hand.get_value() < DEALER_MINIMUM_VALUE:
+            self.dealer_hand.add_card(self.deck.deal())
+        
+        print("\nDealer's final hand:")
+        self.dealer_hand.display()
+        
+        player_hand_value = self.player_hand.get_value()
+        dealer_hand_value = self.dealer_hand.get_value()
 
-    def can_split(self):
-        return len(self.player_hand.cards) == 2 and self.card_value(self.player_hand.cards[0]) == self.card_value(self.player_hand.cards[1])
+        print("Final Results")
+        print("Your hand:", player_hand_value)
+        print("Dealer's hand:", dealer_hand_value)
+
+        if self.is_bust(self.dealer_hand):
+            print("Dealer has busted! You win!")
+            self.money += self.bet
+        elif player_hand_value > dealer_hand_value:
+            print("You Win!")
+            self.money += self.bet
+        elif player_hand_value == dealer_hand_value:
+            print("Tie!")
+        else: 
+            print("Dealer Wins!")
+            self.money -= self.bet
+
+    def double_down(self, hand):
+        self.hit(hand)
 
     def split_hand(self):
-        if not self.can_split():
+        if not self.can_split(self.player_hand):
             print("Cannot split hand!")
             return
 
@@ -195,6 +191,55 @@ class Game:
         # Deal a new card to each hand
         self.player_hand.add_card(self.deck.deal())
         self.player_hand2.add_card(self.deck.deal())
+
+        print("\nFirst hand:")
+        self.player_hand.display()
+        print("\nSecond hand:")
+        self.player_hand2.display()
+
+        # Play the first hand
+        print("\nPlaying first hand...")
+        self.play_hand(self.player_hand)
+
+        # Play the second hand
+        print("\nPlaying second hand...")
+        self.play_hand(self.player_hand2)
+
+    def play_hand(self, hand):
+        game_over = False
+        while not game_over:
+            print("\nChoose your action:")
+            print("[1] - Hit")
+            print("[2] - Stand")
+            print("[3] - Double Down")
+
+            choice = self.get_choice(["1", "2", "3"])
+
+            if choice == '1':
+                self.hit(hand)
+                if self.is_bust(hand):
+                    print("You have lost!")
+                    self.money -= self.bet / 2
+                    game_over = True
+            
+            elif choice == '2':
+                self.stand()
+                game_over = True
+            
+            elif choice == '3':
+                self.double_down(hand)
+                if self.is_bust(hand):
+                    print("You have lost!")
+                    self.money -= self.bet
+                    game_over = True
+                else:
+                    self.bet *= 2
+
+    def is_bust(self, hand):
+        return hand.get_value() > BLACKJACK
+
+    def can_split(self, hand):
+        return len(hand.cards) == 2 and self.card_value(hand.cards[0]) == self.card_value(hand.cards[1])
 
     def card_value(self, card):
         if card.value.isnumeric():
